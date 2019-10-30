@@ -1,0 +1,74 @@
+version: '3.3'
+services:
+  api:
+    build: ./.docker/nginx
+    container_name: api-platform-demo-nginx
+    restart: always
+    environment:
+      - APP_ENV=dev
+    ports:
+      - 8080:80
+    links:
+      - php-fpm
+    volumes:
+      - ./var/log:/var/log/nginx
+      - .:/var/www
+    networks:
+      - api-platform-demo
+  php-fpm:
+    build:
+      context: ./.docker/php-fpm
+      args:
+        - VERSION=7.2
+        - INSTALL_MYSQL=true
+        - INSTALL_POSTGRESQL=false
+        - INSTALL_MONGO=false
+        - INSTALL_MEMCACHED=true
+        - INSTALL_OPCACHE=true
+        - INSTALL_REDIS=false
+        - INSTALL_BCMATH=false
+        - INSTALL_TOKENIZER=false
+        - INSTALL_INTL=true
+        - INSTALL_LDAP=true-broken
+        - INSTALL_SOAP=true
+        - INSTALL_XDEBUG=true
+        - INSTALL_ZIP_ARCHIVE=true
+        - INSTALL_EXIF=true
+        - INSTALL_GD=true
+        - INSTALL_IMAGEMAGICK=true
+    container_name: api-platform-demo-php-fpm
+    restart: always
+    environment:
+      - APP_ENV=dev
+    expose:
+      - 9000
+    volumes:
+      - .:/var/www
+    working_dir: /var/www
+    links:
+      - mysql
+    networks:
+      - api-platform-demo
+  mysql:
+    image: mysql:5.7
+    restart: always
+    container_name: api-platform-demo-mysql
+    environment:
+      MYSQL_DATABASE: api-demo
+      MYSQL_USER: demo
+      MYSQL_PASSWORD: demo
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - 3316:3306
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - api-platform-demo
+
+volumes:
+  db-data:
+#    external: true
+
+networks:
+  api-platform-demo:
+#    external: true
